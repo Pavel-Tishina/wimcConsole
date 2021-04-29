@@ -19,15 +19,45 @@ public class FileRecord {
     public static boolean move;
     public static boolean del;
 
-    public FileRecord(File f, String md5RootDir) {
+    public FileRecord(File f, String md5RootDir, long rb) {
         if (f.exists() && f.isFile()) {
             name = f.getName();
             path = f.getAbsolutePath();
 
-            Map<String, String> md5Map = FileDirUtils.getMd5Path(f, md5RootDir);
+            Map<String, String> md5Map = FileDirUtils.getMd5Path(f, md5RootDir, rb);
             md5Path = md5Map.get("md5Dir");
             size = f.length();
-            md5 = md5Map.get("md5");
+            md5 = (md5Map.get("md5").isEmpty()) ? "zero" : md5Map.get("md5");
+
+            main = false;
+            hold = false;
+            move = true;
+            del = false;
+        }
+        else {
+            name = "";
+            path = "";
+            md5Path = "";
+            size = 0;
+            md5 = "";
+
+            main = false;
+            hold = false;
+            move = false;
+            del = false;
+        }
+    }
+
+    public FileRecord(File f, String md5RootDir, String MD5) {
+        if (f.exists() && f.isFile()) {
+            name = f.getName();
+            path = f.getAbsolutePath();
+
+            md5 = MD5.isEmpty() ? "zero" : MD5;
+            Map<String, String> md5Map = FileDirUtils.getMd5Path(f, md5RootDir, md5);
+            md5Path = md5Map.get("md5Dir");
+            size = f.length();
+
 
             main = false;
             hold = false;
@@ -69,6 +99,10 @@ public class FileRecord {
         out.put("hold", hold);
 
         return out;
+    }
+
+    public String md5() {
+        return md5;
     }
 
 }

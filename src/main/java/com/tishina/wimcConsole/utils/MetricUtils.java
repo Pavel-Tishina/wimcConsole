@@ -11,7 +11,8 @@ public class MetricUtils {
 
     public static long getInBytes(String s) {
         String _s = s.toLowerCase();
-        long _z = Long.getLong(s.replaceAll("\\D+", ""));
+        String _zz = s.replaceAll("[a-zA-Z]+", "");
+        long _z = Long.parseLong(_zz);
 
         if (_s.matches("^\\d+[k|kb]$"))
             return _z * 1024;

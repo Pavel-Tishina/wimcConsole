@@ -1,6 +1,7 @@
 package com.tishina.wimcConsole;
 
 
+import com.tishina.wimcConsole.obj.Container;
 import com.tishina.wimcConsole.utils.FileDirUtils;
 
 import java.io.File;
@@ -20,10 +21,16 @@ public class Main {
 
         Map<String, Object> argMap = getArgMap(arg);
 
-        Map<String, String> map = FileDirUtils.getMd5Path(new File("C:/Program Files (x86)/Guitar Pro 5/GP5.exe"), "/_md5");
+        //Map<String, String> map = FileDirUtils.getMd5Path(new File("C:/Program Files (x86)/Guitar Pro 5/GP5.exe"), "/_md5");
 
+        Container c = new Container(
+                String.valueOf(argMap.get("mode")),
+                String.valueOf(argMap.get("out")),
+                String.valueOf(argMap.get("in")),
+                String.valueOf(argMap.get("md5dir"))
+        );
 
-
+        c.runMakeList(argMap);
 
 
     }
@@ -31,7 +38,8 @@ public class Main {
     public static Map<String, Object> getArgMap(String[] arg) {
         Map<String, Object> out = new HashMap<>();
 
-        Pattern pt = Pattern.compile("-(\\w+)='([a-zA-Z\\d\\/\\:]+)'");
+        //Pattern pt = Pattern.compile("-(\\w+)='([a-zA-Z\\d\\/\\: ]+)'");
+        Pattern pt = Pattern.compile("-(\\w+)='(.*?)'");
 
         for (String a : arg) {
             Matcher mt = mt = pt.matcher(a);
