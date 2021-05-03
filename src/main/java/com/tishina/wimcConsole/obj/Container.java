@@ -76,6 +76,8 @@ public class Container {
                     //System.out.println(ProcessUtils.getProcessInfo(_totalFiles, j.get()));
                     System.out.println(ProcessUtils.getProcessInfo(_totalSize, calculated.get(), ProjectConst.SIZE_IN.MB));
 
+                    if (j.get() % (ProjectConst.EVERY_FILE_CHK * 4) == 0)
+                        System.gc();
                 }
             });
 

@@ -1,0 +1,1 @@
+java -jar ./wimcConsole-1.0-SNAPSHOT.jar "-mode='generate'" "-in='H:/'" "-out='H:/list.json'" "-md5dir='H:/_md5'" "-rb='32m'"

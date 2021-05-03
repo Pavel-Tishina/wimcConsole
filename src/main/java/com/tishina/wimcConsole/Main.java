@@ -4,7 +4,6 @@ package com.tishina.wimcConsole;
 import com.tishina.wimcConsole.obj.Container;
 import com.tishina.wimcConsole.utils.FileDirUtils;
 
-import java.io.File;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -13,11 +12,11 @@ public class Main {
 
     public static void main(String[] arg) {
 
-        List<String> list = FileDirUtils.getFilesPathList("C:/Program Files (x86)");
+        // List<String> list = FileDirUtils.getFilesPathList("C:/Program Files (x86)");
 
-        list.forEach(e -> {System.out.println(e);});
+        // list.forEach(e -> {System.out.println(e);});
 
-        System.out.println(list.size());
+        // System.out.println(list.size());
 
         Map<String, Object> argMap = getArgMap(arg);
 
