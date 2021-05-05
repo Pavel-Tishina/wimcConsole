@@ -3,6 +3,7 @@ package com.tishina.wimcConsole;
 
 import com.tishina.wimcConsole.obj.Container;
 import com.tishina.wimcConsole.utils.FileDirUtils;
+import com.tishina.wimcConsole.utils.TextUtils;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -20,9 +21,37 @@ public class Main {
 
         Map<String, Object> argMap = getArgMap(arg);
 
-        //Map<String, String> map = FileDirUtils.getMd5Path(new File("C:/Program Files (x86)/Guitar Pro 5/GP5.exe"), "/_md5");
+        String tt = "Игра!";
 
-        Container c = new Container(
+        String txt = "";
+        txt += "UTF-8 : " + TextUtils.encodeFromTo("UTF-8", "UTF-8", tt);
+        // txt += "\n" + "CP1251 : " + TextUtils.encodeFromTo3("UTF-8", "CP1251", tt);
+        txt += "\n" + "CP1251 : " + 
+        		TextUtils.encodeFromTo3("CP1251", "UTF-8", 
+        				TextUtils.encodeFromTo3("UTF-8", "CP1251", tt));
+        
+        FileDirUtils.saveTextToFile("/home/mama/workspace_mars/text.txt", txt);
+
+    }
+    
+    public static void modeSelector(Map<String, Object> argMap) {
+    	String mode = (argMap.containsKey("mode")) 
+    			? String.valueOf(argMap.get("mode"))
+    			: "'mode' arg is not found!";
+    			
+    
+    	if (mode.equalsIgnoreCase("generate")) {
+    		generateScenario(argMap);
+    	}
+    	else if (mode.equalsIgnoreCase("move")) {
+    		
+    	}
+    	else
+    		System.out.print(mode);
+    }
+    
+    public static void generateScenario(Map<String, Object> argMap) {
+    	Container c = new Container(
                 String.valueOf(argMap.get("mode")),
                 String.valueOf(argMap.get("out")),
                 String.valueOf(argMap.get("in")),
@@ -30,8 +59,7 @@ public class Main {
         );
 
         c.runMakeList(argMap);
-
-
+    	
     }
 
     public static Map<String, Object> getArgMap(String[] arg) {

@@ -172,6 +172,24 @@ public class FileDirUtils {
 
     }
 
+    public static void saveTextToFile(String file, String txt) {
+        File f = new File(file);
+        try {
+            FileOutputStream os = new FileOutputStream(f);
+
+            os.write(txt.getBytes());
+            os.flush();
+            os.close();
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    
     public static boolean mkDirIfNotExist(String path) {
         return new File(path).mkdirs();
     }
