@@ -2,10 +2,13 @@ package com.tishina.wimcConsole;
 
 
 import com.tishina.wimcConsole.obj.Container;
-import com.tishina.wimcConsole.utils.FileDirUtils;
-import com.tishina.wimcConsole.utils.TextUtils;
+import com.tishina.wimcConsole.obj.ProjectConst;
+import com.tishina.wimcConsole.utils.MetricUtils;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,16 +24,25 @@ public class Main {
 
         Map<String, Object> argMap = getArgMap(arg);
 
-        String tt = "Игра!";
+        //Container c = new Container("generate", "C:/Users/Pavel/Documents/shareftp/list.json", "C:/Users/Pavel/Documents/shareftp", "C:/Users/Pavel/Documents/shareftp/_md5");
+        // Container c = new Container("generate", "H:/list.json", "H:/", "H:/_md5");
+        Container c = new Container("generate", "F:/test/list.json", "F:/test/1;F:/test/2", "F:/test/_md5");
+        c.runMakeList(argMap);
+        // Container c = new Container("C:/Users/Pavel/Documents/shareftp/list.json");
 
-        String txt = "";
-        txt += "UTF-8 : " + TextUtils.encodeFromTo("UTF-8", "UTF-8", tt);
-        // txt += "\n" + "CP1251 : " + TextUtils.encodeFromTo3("UTF-8", "CP1251", tt);
-        txt += "\n" + "CP1251 : " + 
-        		TextUtils.encodeFromTo3("CP1251", "UTF-8", 
-        				TextUtils.encodeFromTo3("UTF-8", "CP1251", tt));
-        
-        FileDirUtils.saveTextToFile("/home/mama/workspace_mars/text.txt", txt);
+        // Container c = new Container("F:/test/list.json");
+        // c.moveDuplicates();
+        // c.deleteDuplicates(true);
+
+        //System.out.println("Total files: " + c._totalFiles);
+
+        // Container c = new Container("H:/list.json");
+        long s = c.getDuplicatesSize();
+        System.out.println("Duplicates: " + c.getDuplicatesTotalFiles() + " files\n"
+            + MetricUtils.getAsString(s, ProjectConst.SIZE_IN.GB) + "\n"
+            + MetricUtils.getAsString(s, ProjectConst.SIZE_IN.MB)
+        );
+
 
     }
     
