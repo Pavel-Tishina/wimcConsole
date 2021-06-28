@@ -1,24 +1,20 @@
 package com.tishina.wimcConsole.utils;
 
 
-
 import com.tishina.wimcConsole.obj.ProjectConst;
-
-import java.util.Locale;
-import java.util.regex.Pattern;
 
 public class MetricUtils {
 
     public static long getInBytes(String s) {
-        String _s = s.toLowerCase();
+        String _s = s.trim().toLowerCase();
         String _zz = s.replaceAll("[a-zA-Z]+", "");
         long _z = Long.parseLong(_zz);
 
-        if (_s.matches("^\\d+[k|kb]$"))
+        if (_s.matches("^\\d+[k|kb]*$"))
             return _z * 1024;
-        else if (_s.matches("^\\d+[m|mb]$"))
+        else if (_s.matches("^\\d+[m|mb]*$"))
             return _z * 1048576;
-        else if (_s.matches("^\\d+[g|gb]$"))
+        else if (_s.matches("^\\d+[g|gb]*$"))
             return _z * 1073741824;
         else
             return _z;

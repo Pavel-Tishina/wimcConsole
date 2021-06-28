@@ -18,4 +18,14 @@ public class ProjectConst {
         UNDEF
     }
 
+    public static enum WORK {
+        UNDONE,
+        FINISH,
+        SKIP,
+        NEED_WORK,
+        READY,
+        DELETED,
+        MOVED
+    }
+
 }

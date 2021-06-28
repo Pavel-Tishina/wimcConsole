@@ -2,14 +2,10 @@ package com.tishina.wimcConsole.utils;
 
 import com.tishina.wimcConsole.obj.ProjectConst;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import java.io.*;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class FileDirUtils {
 
@@ -59,26 +55,6 @@ public class FileDirUtils {
         return out;
     }
 
-    public static Map<String, String> getMd5Path(File f, String md5RootPath, long rb) {
-        Map<String, String> out = new HashMap<>();
-        out.put("md5Root", md5RootPath);
-
-        String md5 = getMd5(f, rb);
-
-        out.put("md5", md5);
-        out.put("md5Dir", md5RootPath + "/" + md5 + "/" + f.getName());
-        return out;
-    }
-
-    public static Map<String, String> getMd5Path(File f, String md5RootPath, String _md5) {
-        Map<String, String> out = new HashMap<>();
-        out.put("md5Root", md5RootPath);
-
-        out.put("md5", _md5);
-        out.put("md5Dir", md5RootPath + "/" + _md5 + "/" + f.getName());
-        return out;
-    }
-
     public static boolean isExist(String file) {
         return new File(file).exists();
     }
@@ -89,70 +65,6 @@ public class FileDirUtils {
 
     public static boolean isDir(String file) {
         return new File(file).isDirectory();
-    }
-
-
-    public static String getMd5(File file) {
-        return getMd5(file, 0);
-    }
-
-    public static String getMd5(File file, long rb) {
-        MessageDigest digest = null;
-        if (file.exists() && file.canRead() && file.length() > 0) {
-            try {
-                digest = MessageDigest.getInstance("MD5");
-                FileInputStream fis = new FileInputStream(file);
-
-                long _br = (rb > 0 && file.length() > rb) ? rb : file.length();
-
-                byte[] byteArray = new byte[(int) _br];
-                int bytesCount = 0;
-
-                boolean needProcessShow = ProcessUtils.needShowMd5Process(file.length(), rb);
-                if (needProcessShow)
-                    System.out.println("\n\t work with " + file.getAbsolutePath());
-
-                long process = 0;
-                while ((bytesCount = fis.read(byteArray)) != -1) {
-                    digest.update(byteArray, 0, bytesCount);
-
-                    if (needProcessShow) {
-                        process += bytesCount;
-
-                        if (((process / file.length()) * 100) % ProjectConst.FSIZE_PROGRESS_PERC == 0) {
-                            //System.out.println(ProcessUtils.getMd5ProcessInfo(file.length(), process, ProjectConst.SIZE_IN.MB));
-                            ProcessUtils.printProgress(file.length(), process);
-                        }
-                    }
-                };
-
-                fis.close();
-
-                byte[] bytes = digest.digest();
-
-                StringBuilder sb = new StringBuilder();
-                for(int i=0; i< bytes.length ;i++)
-                    sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
-
-                if (needProcessShow) {
-                    System.out.println();
-                    if (file.length() / ProjectConst.FSIZE_PROGRESS > 20) {
-                        System.gc();
-                    }
-                }
-
-                return sb.toString();
-            } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-
-        return "";
     }
 
     public static void saveJsonToFile(String file, JSONObject json) {
@@ -194,4 +106,172 @@ public class FileDirUtils {
         return new File(path).mkdirs();
     }
 
+    public static Properties loadConfigProperties() {
+        Properties p = new Properties();
+        try (InputStream input = new FileInputStream("/resources/config.properties")) {
+            p.load(input);
+        } catch (Exception e) {
+            System.out.println("[ERROR] (FileDirUtils::loadConfigProperties) error of load config file. details:\n" + e.getLocalizedMessage());
+        } finally {
+            return p;
+        }
+    }
+
+    public static boolean deleteFile(String file) {
+        File f = new File(file);
+        // return f.isFile() && f.exists() && f.delete();
+        return f.isFile() && f.delete();
+    }
+
+    public static boolean deleteDir(String dir) {
+        File f = new File(dir);
+        return f.isDirectory() && f.exists() && f.delete();
+    }
+
+    public static Map<String, Object> moveOrCopyFile(String source, String destPath, boolean isMove, boolean rewrite) {
+        File sourceFile = new File(source);
+        /*
+        File destFile = (new File(destPath).isFile())
+            ? new File(destPath)
+            : new File(destPath + "/" + sourceFile.getName());
+         */
+        File destFile = new File(destPath);
+
+        Map<String, Object> out = new HashMap<>();
+
+        if (destFile.exists() && rewrite)
+            out.put("rewrite", destFile.delete());
+        // else
+
+        /*
+        File pathMake = (new File(destPath).isDirectory())
+                ? new File(destPath)
+                : new File(new File(destPath).getPath());
+         */
+        //String fName = sourceFile.getName()
+        File pathMake = new File(destPath.substring(0, destPath.lastIndexOf(sourceFile.getName())));
+
+        out.put("make dirs", pathMake.mkdirs());
+
+
+        try {
+            // FileReader fis = new FileReader(sourceFile);
+            // FileWriter fos = new FileWriter(destFile);
+            FileInputStream fis = new FileInputStream(sourceFile);
+            FileOutputStream fos = new FileOutputStream(destFile);
+
+            if (sourceFile.getFreeSpace() <= sourceFile.length()) {
+                out.put("move", false);
+                out.put("error", "not enough free space");
+                out.put("errorType", "FreeSpace");
+                out.put("result", getCopyOrMoveResultOperation(out));
+                return out;
+            }
+
+            boolean needProcessShow = ProcessUtils.needShowCopyProcess(sourceFile.length());
+            long progressPart = (needProcessShow)
+                    ? ProcessUtils.getMd5PercentValue(sourceFile.length())
+                    : 0;
+
+            byte[] b = new byte[(int) MetricUtils.getInBytes("512k")];
+            // char[] b = new char[(int) MetricUtils.getInBytes("512k")];
+            int length;
+            int curRead = 0;
+
+            String action = (isMove) ? "Move" : "Copy";
+
+            if (needProcessShow)
+                System.out.println(
+                        "\n\t" + action + " file \"" + sourceFile.getName() + "\" (" + MetricUtils.getAsString(sourceFile.length(), ProjectConst.SIZE_IN.MB) + ")"
+                        + "\n\t\t from: " + sourceFile.getPath()
+                        + "\n\t\t to: " + destFile.getPath());
+
+            while ((length = fis.read(b)) > 0 ) {
+                fos.write(b, 0, length);
+                //fos.write(b, curRead, length);
+
+                curRead += length;
+                if (needProcessShow) {
+
+                    if (curRead % progressPart == 0)
+                        ProcessUtils.printProgress(sourceFile.length(), curRead);
+                }
+            }
+
+            fis.close();
+            fos.flush();
+            fos.close();
+
+            if (isMove)
+                out.put("del", sourceFile.delete()) ;
+
+            out.put("move", true);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            out.put("error", e.getLocalizedMessage());
+            out.put("errorType", e.getClass().getSimpleName());
+            out.put("move", false);
+        } catch (IOException e) {
+            e.printStackTrace();
+            out.put("error", e.getLocalizedMessage());
+            out.put("errorType", e.getClass().getSimpleName());
+            out.put("move", false);
+        }
+
+        out.put("result", getCopyOrMoveResultOperation(out));
+        return out;
+    }
+
+    public static JSONObject loadFileList(String source) {
+        JSONObject out = new JSONObject();
+
+        File f = new File(source);
+        try {
+            FileInputStream fi = new FileInputStream(f);
+            JSONTokener tk = new JSONTokener(fi);
+
+            out = new JSONObject(tk);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        return out;
+    }
+
+    public static String dirSlashConvert(String path) {
+        return path.replaceAll("\\\\+", "/");
+    }
+
+    public static ProjectConst.WORK getCopyOrMoveResultOperation(Map<String, Object> map) {
+        Boolean deleteSource = (map.containsKey("del"))
+                ? ObjectUtils.obj2Boolean(map.get("del"))
+                : false;
+
+        Boolean move = (map.containsKey("move"))
+                ? ObjectUtils.obj2Boolean(map.get("move"))
+                : false;
+
+        Boolean error = (map.containsKey("error"))
+                ? ObjectUtils.obj2Boolean(map.get("error"))
+                : false;
+
+        if (!error) {
+            if (move) {
+                if (deleteSource)
+                    return ProjectConst.WORK.MOVED;
+                else
+                    return ProjectConst.WORK.FINISH;
+            }
+            else
+                return ProjectConst.WORK.SKIP;
+        }
+        else {
+            String errorType = map.get("errorType").toString();
+            if (errorType.equalsIgnoreCase("Freespace"))
+                return ProjectConst.WORK.NEED_WORK;
+            else
+                return ProjectConst.WORK.SKIP;
+        }
+
+    }
 }
